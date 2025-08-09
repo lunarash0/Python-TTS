@@ -1,22 +1,43 @@
-import pyttsx3
+import sys, os, pyttsx3
 
-engine = pyttsx3.init()
+# pick stinky driver
+if sys.platform == "darwin":
+    DRIVER = "nsss"
+elif os.name == "nt":
+    DRIVER = "sapi5"
+else:
+    DRIVER = "espeak"
 
-engine.setProperty('rate', int(input("Please enter the wpm you would like me to speak at (150 is semi-slow): ")))
-engine.setProperty('volume', float(input("Volume level (0.0 to 1.0): ")))
+rate = int(input("WPM (150 is semi-slow): ") or 150)
+vol  = float(input("Volume 0.0–1.0: ") or 1.0)
 
-# yap ff alle voices available
+# begin ai
+tmp_engine = pyttsx3.init(DRIVER)
+# end ai
+voices = tmp_engine.getProperty('voices')
+for i, v in enumerate(voices):
+    print(f"{i}: {v.name}")
+sel = int(input("Select voice #: "))
+voice_id = voices[sel].id
+# begin ai
+tmp_engine.stop(); del tmp_engine
+# end ai
 
-voices = engine.getProperty('voices')
-
-for i, voice in enumerate(voices):
-    print(f"\033[92mVoice {i}: {voice.name}, {voice.gender}\033[0m")
-
-sel_voice = int(input("Select a voice (#) : "))
-
+print("Type text (exit to quit):")
 while True:
-    text = input("Text to speak (say exit to quit): ")
+    for i in range(30):
+        print(" ")
+    text = input("> ").strip()
     if text.lower() == "exit":
         break
+    if not text:
+        continue
+
+    engine = pyttsx3.init(DRIVER)
+    engine.setProperty('rate', rate)
+    engine.setProperty('volume', vol)
+    engine.setProperty('voice', voice_id)
     engine.say(text)
     engine.runAndWait()
+    engine.stop()
+    del engine
